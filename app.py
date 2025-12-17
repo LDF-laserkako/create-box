@@ -1,9 +1,17 @@
 import streamlit as st
 import io
+import sys
 
-# 💡 修正ポイント 1: boxesライブラリをそのままインポートし、
-#     内部のクラスをコードの実行時に取得する形に変更します。
-import boxes
+# 依存関係が正しくロードされるよう強制的にインポート
+try:
+    import boxes
+    from boxes.box_maker import BoxMaker
+    from boxes.finger_joint import FingerJoint
+    from boxes.plain import Plain
+    from boxes.dxf import Dxf
+    from boxes.svg import Svg
+except ImportError:
+    st.error("ライブラリ 'boxes' の読み込みに失敗しました。requirements.txt が正しく設定されているか確認してください。")
 
 # --- ページ設定 ---
 st.set_page_config(

@@ -1,3 +1,4 @@
 streamlit
+numpy<2.0.0
+setuptools
 git+https://github.com/florianfesti/boxes.git
-numpy

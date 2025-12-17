@@ -1,8 +1,9 @@
 import streamlit as st
 import io
 
-# 💡 修正ポイント 1: ライブラリ全体を 'laser_boxes' という別名でインポート
-import boxes as laser_boxes
+# 💡 修正ポイント 1: boxesライブラリをそのままインポートし、
+#     内部のクラスをコードの実行時に取得する形に変更します。
+import boxes
 
 # --- ページ設定 ---
 st.set_page_config(
@@ -13,7 +14,7 @@ st.set_page_config(
 
 st.title("📦 レーザーカット箱ジェネレーター")
 st.markdown("寸法と素材の厚さを入力し、指接ぎ箱のSVG図面を生成します。")
-
+# 
 
 # --- 1. 入力パラメーターのサイドバー ---
 st.sidebar.header("📐 箱の寸法と設定")
@@ -44,10 +45,11 @@ lid_mode = st.sidebar.checkbox("蓋（フタ）を含める", value=False)
 def generate_box_svg(w, d, h, t, j_s, k, lid):
     """Boxes.pyを使って箱の図面を生成し、バイトデータとして返す"""
     try:
-        # 💡 修正ポイント 2: 'laser_boxes.' プレフィックスを付けて、サブモジュールを明示的に呼び出します
+        # 💡 修正ポイント 2: boxesモジュールから属性としてクラスを直接取得 (boxes.box_maker.BoxMaker() のように)
         
         # Boxes.pyのBoxインスタンスを作成
-        box = laser_boxes.box_maker.BoxMaker()
+        BoxMaker = boxes.box_maker.BoxMaker
+        box = BoxMaker()
         
         # 寸法を設定
         box.size = size_mode.lower()
@@ -57,26 +59,27 @@ def generate_box_svg(w, d, h, t, j_s, k, lid):
         box.thickness = t
         
         # ジョイントを設定
-        # 指接ぎを使用
-        box.joint = laser_boxes.finger_joint.FingerJoint(size=j_s)
+        FingerJoint = boxes.finger_joint.FingerJoint
+        box.joint = FingerJoint(size=j_s)
         
         # カーフを設定
         box.kerf = k
         
         # 蓋の設定
+        Plain = boxes.plain.Plain
         if lid:
-            # 蓋も指接ぎで作成
-            box.top = laser_boxes.finger_joint.FingerJoint(size=j_s)
+            box.top = FingerJoint(size=j_s) # 蓋も指接ぎで作成
         else:
-            # 蓋なし
-            box.top = laser_boxes.plain.Plain()
+            box.top = Plain() # 蓋なし
 
         # Boxインスタンスを描画
-        dxf_d = laser_boxes.dxf.Dxf(box)
+        Dxf = boxes.dxf.Dxf
+        dxf_d = Dxf(box)
 
-        # SVGフォーマットに出力するために BytesIO を使用
+        # SVGフォーマットに出力
+        Svg = boxes.svg.Svg
         svg_buffer = io.BytesIO()
-        laser_boxes.svg.Svg(dxf_d).write(svg_buffer)
+        Svg(dxf_d).write(svg_buffer)
         
         return svg_buffer.getvalue()
 
